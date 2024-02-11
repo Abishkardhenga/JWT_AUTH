@@ -25,15 +25,19 @@ const LoginHandler = async (req, res) => {
     }
 
     const token = createSecretToken(data);
+
+    // Set the cookie and send the response
     res
-      .status(201)
       .cookie("token", token, {
         httpOnly: false,
         maxAge: 24 * 60 * 60 * 1000,
-        // sameSite: "none",
-        // secure: true,
+        sameSite: "None",
       })
+      .status(201)
       .json({ message: "User Login in successfully", success: true, data });
+
+    console.log("this is cookies hai ta login", req.cookies);
+    // console.log("this is cookies hai ta login", res.getHeaders()["set-cookie"]);
   } catch (err) {
     console.error("Error in LoginHandler:", err.message);
     res.status(500).json({ message: "Internal server error", success: false });
@@ -70,8 +74,6 @@ const RegisterHandler = async (req, res) => {
 
 const userVerification = async (req, res) => {
   try {
-    console.log("Token from req.cookies:", req.cookies);
-    console.log("secre key ", process.env.secret_key);
     if (!req.cookies || !req.cookies.token) {
       return res
         .status(404)
@@ -81,18 +83,42 @@ const userVerification = async (req, res) => {
     const token = req.cookies.token;
 
     const data = jwt.verify(token, process.env.secret_key);
-    console.log("this is  user verifaction data", data);
-    console.log("this is  user verifaction name", data.name);
+
     const user = await owner.findById(data.id);
 
     if (user) {
-      res.status(200).json({ status: true, user: user.username });
+      res.status(200).json({ status: true, data, user: user.username });
     } else {
       res.status(403).json({ status: false, message: "User not found" });
     }
   } catch (error) {
-    console.error("Error in userVerification:", error.message);
     res.status(500).json({ status: false, message: "Internal server error" });
+  }
+};
+const logout = async (req, res) => {
+  try {
+    if (req.cookies) {
+      res.clearCookie("token");
+      res
+        .status(200)
+        .json({ mesage: "cookie clear successfully", success: true });
+    }
+  } catch (e) {
+    console.log(e);
+    res.status(403).json({ message: e.message, success: false });
+  }
+};
+
+const userData = (req, res) => {
+  const data = {
+    name: "Aabiskar dhenga",
+    class: 10,
+    isPass: true,
+  };
+  try {
+    res.status(200).json({ message: data, success: true });
+  } catch (e) {
+    res.status(403).json({ message: e.message, success: false });
   }
 };
 
@@ -100,4 +126,6 @@ module.exports = {
   LoginHandler,
   RegisterHandler,
   userVerification,
+  userData,
+  logout,
 };

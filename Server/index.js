@@ -15,11 +15,9 @@ app.use(
   })
 );
 
-app.use(cookieParser()); // Move this line up
-
+app.use(cookieParser());
 app.use(express.json());
-
-require("./Routes/index")(app);
+app.use(require("./Routes/Auth"));
 
 app.listen(port, () => {
   console.log("Server running at ", port);

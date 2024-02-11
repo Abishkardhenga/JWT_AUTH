@@ -3,9 +3,12 @@ const {
   LoginHandler,
   RegisterHandler,
   userVerification,
+  logout,
+  userData,
   // LogoutHandler,
   // Getuser,
 } = require("../Controller/Auth");
+const authMiddleware = require("../Middleware/AuthMiddleware");
 
 const router = express.Router();
 
@@ -23,6 +26,8 @@ const dataCollection = (req, res) => {
 router.post("/login", LoginHandler);
 router.post("/register", RegisterHandler);
 router.get("/data", dataCollection);
+router.get("/user", authMiddleware, userData);
 router.post("/", userVerification);
+router.get("/logout", logout);
 
 module.exports = router;
