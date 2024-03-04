@@ -13,4 +13,9 @@ const createSecretToken = (data) => {
   );
 };
 
-module.exports = { createSecretToken };
+const verifySecretToken = (data) => {
+  const verifiedData = jwt.verify(data, process.env.secret_key);
+  return verifiedData;
+};
+
+module.exports = { createSecretToken, verifySecretToken };

@@ -17,6 +17,7 @@ app.use(
 
 app.use(cookieParser());
 app.use(express.json());
+
 app.use(require("./Routes/Auth"));
 
 app.listen(port, () => {

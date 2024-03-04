@@ -9,6 +9,7 @@ const {
   // Getuser,
 } = require("../Controller/Auth");
 const authMiddleware = require("../Middleware/AuthMiddleware");
+const { testing } = require("../Middleware/testing");
 
 const router = express.Router();
 
@@ -19,15 +20,21 @@ const router = express.Router();
 // };
 const dataCollection = (req, res) => {
   const cookies = req.cookies;
-  console.log("this is cookies", cookies);
-  res.status(200).json({ message: "data", success: true });
+  console.log("this is req.userData", req.userData);
+  res.status(200).json({
+    message: {
+      student: "Deepti",
+      age: 20,
+    },
+    success: true,
+  });
 };
 
 router.post("/login", LoginHandler);
 router.post("/register", RegisterHandler);
-router.get("/data", dataCollection);
-router.get("/user", authMiddleware, userData);
-router.post("/", userVerification);
-router.get("/logout", logout);
+router.get("/data", testing, authMiddleware, dataCollection);
+router.get("/user", testing, authMiddleware, userData);
+router.post("/", testing, userVerification);
+router.get("/logout", testing, logout);
 
 module.exports = router;

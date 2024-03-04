@@ -1,4 +1,8 @@
-const { createSecretToken } = require("../Middleware/Jwtverify");
+const {
+  createSecretToken,
+  verifySecretToken,
+} = require("../Middleware/Jwtverify");
+const { hashPassword, verifyPassword } = require("../Middleware/hashpass");
 const owner = require("../Model/user");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -18,7 +22,9 @@ const LoginHandler = async (req, res) => {
       return res.status(404).json({ message: "No data found", success: false });
     }
 
-    if (data.password !== password) {
+    const isPasswordValid = await verifyPassword(password, data.password);
+
+    if (!isPasswordValid) {
       return res
         .status(403)
         .json({ message: "Incorrect password", success: false });
@@ -34,7 +40,7 @@ const LoginHandler = async (req, res) => {
         sameSite: "None",
       })
       .status(201)
-      .json({ message: "User Login in successfully", success: true, data });
+      .json({ message: "User Login in successfully", success: true });
 
     console.log("this is cookies hai ta login", req.cookies);
     // console.log("this is cookies hai ta login", res.getHeaders()["set-cookie"]);
@@ -53,7 +59,13 @@ const RegisterHandler = async (req, res) => {
       return res.json({ message: "User already exists" });
     }
 
-    const user = await owner.create({ email, password, username });
+    const hashedPassword = await hashPassword(password);
+    console.log("this password is hassed Password", hashedPassword);
+    const user = await owner.create({
+      email,
+      password: hashedPassword,
+      username,
+    });
 
     const token = createSecretToken(user);
 
@@ -65,7 +77,7 @@ const RegisterHandler = async (req, res) => {
 
         maxAge: 24 * 60 * 60 * 1000,
       })
-      .json({ message: "User signed in successfully", success: true, user });
+      .json({ message: "User signed in successfully", success: true });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error", success: false });
@@ -82,7 +94,9 @@ const userVerification = async (req, res) => {
 
     const token = req.cookies.token;
 
-    const data = jwt.verify(token, process.env.secret_key);
+    const data = verifySecretToken(token);
+
+    // const data = jwt.verify(token, process.env.secret_key);
 
     const user = await owner.findById(data.id);
 
@@ -115,6 +129,7 @@ const userData = (req, res) => {
     class: 10,
     isPass: true,
   };
+  console.log("this is userDAta", req.userData);
   try {
     res.status(200).json({ message: data, success: true });
   } catch (e) {
